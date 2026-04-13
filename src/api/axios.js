@@ -1,25 +1,29 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: import.meta.env.VITE_API_URL || '/api',
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 10000,
 });
 
+// Thêm header cho ngrok nếu cần
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-      console.log("Token 11111111111", token)
     }
-    config.headers['ngrok-skip-browser-warning'] = 'true';
+    
+    // Chỉ thêm header này nếu đang dùng ngrok
+    if (import.meta.env.MODE === 'development') {
+      config.headers['ngrok-skip-browser-warning'] = 'true';
+    }
+    
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 // Response interceptor
@@ -41,6 +45,9 @@ api.interceptors.response.use(
         default:
           console.error('API Error:', error.response.data);
       }
+    } else if (error.code === 'ERR_NETWORK') {
+      console.error('Network error - Cannot connect to server');
+      alert('Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng!');
     }
     return Promise.reject(error);
   }
