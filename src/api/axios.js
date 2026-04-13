@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'https://localhost:7153/api',
+  baseURL: '/api',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -14,6 +14,7 @@ api.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
       console.log("Token 11111111111", token)
     }
+    config.headers['ngrok-skip-browser-warning'] = 'true';
     return config;
   },
   (error) => {
