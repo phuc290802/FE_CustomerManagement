@@ -21,7 +21,7 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
         headers: {
-          'ngrok-skip-browser-warning': 'true'
+          'ngrok-skip-browser-warning': '69420'
         }
       }
     }

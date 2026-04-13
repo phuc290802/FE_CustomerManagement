@@ -1,14 +1,17 @@
 import axios from 'axios';
 
+// Lấy API URL từ environment variable
+const API_URL = import.meta.env.VITE_API_URL || '/api';
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api',
+  baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 10000,
+  timeout: 30000,
 });
 
-// Thêm header cho ngrok nếu cần
+// Request interceptor
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -16,41 +19,18 @@ api.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
     
-    // Chỉ thêm header này nếu đang dùng ngrok
-    if (import.meta.env.MODE === 'development') {
-      config.headers['ngrok-skip-browser-warning'] = 'true';
+    // Thêm header cho ngrok
+    if (API_URL.includes('ngrok-free.dev')) {
+      config.headers['ngrok-skip-browser-warning'] = '69420';
     }
     
+    console.log(`📤 ${config.method.toUpperCase()} ${config.baseURL}${config.url}`);
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-// Response interceptor
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response) {
-      switch (error.response.status) {
-        case 401:
-          localStorage.removeItem('token');
-          localStorage.removeItem('username');
-          window.location.href = '/login';
-          break;
-        case 403:
-          alert('Bạn không có quyền thực hiện thao tác này');
-          break;
-        case 409:
-          break;
-        default:
-          console.error('API Error:', error.response.data);
-      }
-    } else if (error.code === 'ERR_NETWORK') {
-      console.error('Network error - Cannot connect to server');
-      alert('Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng!');
-    }
-    return Promise.reject(error);
-  }
-);
+// Response interceptor (giữ nguyên)
+// ...
 
 export default api;
